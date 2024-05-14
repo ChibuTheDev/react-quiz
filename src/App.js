@@ -6,6 +6,7 @@ import Error from './components/Error';
 import Startscreen from "./components/Startscreen";
 import Question from "./components/Question";
 import NextButton from "./components/NextButton";
+import ProgressBar from "./components/ProgressBar";
 
 
 const initialState={
@@ -74,6 +75,9 @@ const [{questions, status, index, answer,points}, dispatch] = useReducer(reducer
 
 
   const numQuestions = questions.length
+  const maxPossiblePoints = questions.reduce(
+    (prev,curr)=>prev +curr.points,0
+  )
 
   return (
     <div className="App">
@@ -83,12 +87,18 @@ const [{questions, status, index, answer,points}, dispatch] = useReducer(reducer
       {status === 'loading' && <Loader/>}
       {status === 'error' && <Error/>}
       {status === 'ready' && <Startscreen dispatch={dispatch} numQuestions={numQuestions}/>}
-      {status === 'active' && <Question dispatch={dispatch} question={questions[index]} answer={answer} points={points}/>}
-     </Main>
-     <>
+      {status === 'active' && (
+       <>
+        <ProgressBar index={index} numQuestions={numQuestions} points={points} 
+          maxPossiblePoints={maxPossiblePoints} answer={answer}
+        />
+        <Question dispatch={dispatch} question={questions[index]} answer={answer} points={points}/>
 
      <NextButton answer={answer} dispatch={dispatch}/>
-     </>
+     </> 
+     )}
+     </Main>
+   
     </div>
   );
 }
