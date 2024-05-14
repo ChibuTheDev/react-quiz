@@ -1,13 +1,21 @@
 import { useEffect, useReducer } from "react";
 import Header from "./components/Header";
-import Main from './components/Main'
+import Main from './components/Main';
+import Loader from './components/Loader';
+import Error from './components/Error';
+import Startscreen from "./components/Startscreen";
+import Question from "./components/Question";
+import NextButton from "./components/NextButton";
 
 
 const initialState={
   questions:[],
 
   //Loading, error, ready, active, finished
-  status:'loading'
+  status:'loading',
+  index:0,
+  answer:null,
+  points:0
 }
 
 function reducer(state,action){
@@ -18,6 +26,34 @@ function reducer(state,action){
         questions: action.payload,
         status:'ready'
       };
+    case 'dataFailed':
+      return{
+        ...state,
+        status:'error'
+
+      }
+    case 'newAnswer'  :
+      const question = state.questions.at(state.index)
+      return{
+        ...state,
+        answer: action.payload,
+        points: action.payload === question.correctOption ? state.points+question.points : state.points
+       
+      } 
+
+    case 'start'  :
+      return{
+        ...state,
+        status:'active'
+      }
+
+    case 'nextQuestion':
+      return{
+        ...state,
+        index: state.index+1,
+        answer:null
+      }
+
     default:
     throw new Error('Action unknown');
   }
@@ -25,7 +61,9 @@ function reducer(state,action){
 
 export default function App() {
 
-const [state, dispatch] = useReducer(reducer,initialState)
+const [{questions, status, index, answer,points}, dispatch] = useReducer(reducer,initialState)
+
+
 
 
   useEffect(function(){
@@ -35,16 +73,23 @@ const [state, dispatch] = useReducer(reducer,initialState)
   },[])
 
 
-
+  const numQuestions = questions.length
 
   return (
     <div className="App">
-
+    
       <Header/>
      <Main> 
-       <p>1/15</p>
-       <p>Question</p>
+      {status === 'loading' && <Loader/>}
+      {status === 'error' && <Error/>}
+      {status === 'ready' && <Startscreen dispatch={dispatch} numQuestions={numQuestions}/>}
+      {status === 'active' && <Question dispatch={dispatch} question={questions[index]} answer={answer} points={points}/>}
      </Main>
+     <>
+
+     <NextButton answer={answer} dispatch={dispatch}/>
+     </>
     </div>
   );
 }
+
